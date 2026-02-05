@@ -14,3 +14,7 @@
 
 ## 最低要件
 - 対応OS: Android 8.0 (API 26) 以上
+
+---
+## Contact
+開発者への連絡は Twitter(現X): [@nomorebilk](https://twitter.com/nomorebilk) までお願いします。
