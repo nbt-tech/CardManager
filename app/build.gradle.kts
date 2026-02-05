@@ -1,3 +1,12 @@
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        load(file.inputStream())
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +16,21 @@ plugins {
 }
 
 android {
+    // 署名設定の定義
+    signingConfigs {
+        create("release config") {
+            // local.propertiesから読み込む。存在しない場合は設定をスキップする
+            val storeFilePath = localProperties.getProperty("RELEASE_STORE_FILE")
+            if (!storeFilePath.isNullOrEmpty()) {
+                storeFile = file(storeFilePath)
+            }
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+            storeFile = file("G:\\マイドライブ\\nbttech")
+        }
+    }
+
     namespace = "com.nbttech.cardmanager"
     compileSdk = 35
 
@@ -18,17 +42,25 @@ android {
         versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // デフォルトの署名を指定
+        signingConfig = signingConfigs.getByName("release config")
     }
 
     buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("release config")
+        }
+
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release config")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
