@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
@@ -271,20 +272,29 @@ fun CardListScreen(
                             change.consume()
                             dragOffset += dragAmount.y
                             
-                            val draggingIndex = draggingItemIndex ?: return@detectDragGesturesAfterLongPress
+                            val currentIndex = draggingItemIndex ?: return@detectDragGesturesAfterLongPress
+                            val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
+                            val draggingItem = visibleItems.firstOrNull { it.index == currentIndex } ?: return@detectDragGesturesAfterLongPress
                             
-                            val targetIndex = if (dragOffset > 50f && draggingIndex < listForDisplay.size - 1) {
-                                draggingIndex + 1
-                            } else if (dragOffset < -50f && draggingIndex > 0) {
-                                draggingIndex - 1
-                            } else null
+                            // ドラッグ中のアイテムの中心物理座標
+                            val draggingItemCenter = draggingItem.offset + (draggingItem.size / 2) + dragOffset
+                            
+                            // 入れ替わり対象のアイテムを判定
+                            val targetItem = visibleItems.firstOrNull { item ->
+                                item.index != currentIndex && 
+                                draggingItemCenter.toInt() in item.offset..(item.offset + item.size)
+                            }
 
-                            if (targetIndex != null) {
+                            if (targetItem != null) {
+                                // 重要：入れ替わりによって発生するベース位置のズレを補正し、指の位置をキープする
+                                val scrollAdjustment = draggingItem.offset - targetItem.offset
+                                
                                 val newList = listForDisplay.toMutableList()
-                                Collections.swap(newList, draggingIndex, targetIndex)
+                                Collections.swap(newList, currentIndex, targetItem.index)
+                                
                                 listForDisplay = newList
-                                draggingItemIndex = targetIndex
-                                dragOffset = 0f
+                                draggingItemIndex = targetItem.index
+                                dragOffset += scrollAdjustment
                             }
                         },
                         onDragEnd = {
@@ -303,7 +313,7 @@ fun CardListScreen(
         ) {
             itemsIndexed(listForDisplay, key = { _, card -> card.id }) { index, card ->
                 val isDragging = draggingItemIndex == index
-                val elevation by animateDpAsState(if (isDragging) 12.dp else 0.dp, label = "elevation")
+                val elevation by animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "elevation")
                 
                 CardItem(
                     card = card,
@@ -314,11 +324,18 @@ fun CardListScreen(
                         .animateItem(
                             fadeInSpec = null,
                             fadeOutSpec = null,
-                            placementSpec = spring<IntOffset>()
+                            // 重要：ドラッグ中のアイテムのアニメーションを無効にして「ジャンプ」を防ぐ
+                            placementSpec = if (isDragging) null else spring<IntOffset>()
                         )
-                        .zIndex(if (isDragging) 10f else 0f)
+                        .zIndex(if (isDragging) 100f else 1f)
+                        .graphicsLayer {
+                            translationY = if (isDragging) dragOffset else 0f
+                            shadowElevation = elevation.toPx()
+                            scaleX = if (isDragging) 1.02f else 1f
+                            scaleY = if (isDragging) 1.02f else 1f
+                            alpha = if (isDragging) 0.95f else 1f
+                        }
                         .shadow(elevation, RoundedCornerShape(16.dp))
-                        .offset(y = if (isDragging) dragOffset.dp else 0.dp)
                 )
             }
         }
@@ -386,6 +403,7 @@ fun CardDetailDialog(card: CardEntity, onDismiss: () -> Unit) {
                     DetailItem(label = "CVV", value = card.cvv, modifier = Modifier.weight(1f))
                 }
                 DetailItem(label = "BRAND", value = card.brand.uppercase())
+                DetailItem(label = "ISSUER", value = card.issuer.ifEmpty { "UNKNOWN" }.uppercase())
             }
         },
         confirmButton = {

@@ -19,6 +19,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         brand: String
     ) {
         viewModelScope.launch {
+            // 保存前にイシュアを取得
+            val issuer = BinLookup.getIssuer(cardNumber)
+            
             val count = cardDao.getCardCount()
             val newCard = CardEntity(
                 cardName = cardName,
@@ -26,8 +29,8 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                 expiryDate = expiryDate,
                 cvv = cvv,
                 brand = brand,
-                issuer = "",
-                displayOrder = count // 末尾に追加
+                issuer = issuer, // 取得した値をセット
+                displayOrder = count
             )
             cardDao.insertCard(newCard)
         }
@@ -54,7 +57,6 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
 
     fun importCards(cards: List<CardEntity>) {
         viewModelScope.launch {
-            // IDを0にリセットして新規登録扱いにする（既存のIDとぶつからないように）
             val cardsToInsert = cards.map { it.copy(id = 0) }
             cardDao.insertCards(cardsToInsert)
         }
