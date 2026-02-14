@@ -244,7 +244,7 @@ fun CardListScreen(
     }
 
     var draggingItemIndex by remember { mutableStateOf<Int?>(null) }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     var selectedCard by remember { mutableStateOf<CardEntity?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
