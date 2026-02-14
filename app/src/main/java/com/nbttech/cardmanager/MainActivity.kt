@@ -16,8 +16,11 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -66,6 +69,19 @@ import java.util.Collections
 enum class ThemeMode {
     LIGHT, DARK, SYSTEM
 }
+
+val CardColors = listOf(
+    0xFF1A1A1AL, // Dark Grey
+    0xFF2D3436L, // City Lights
+    0xFF0984E3L, // Electron Blue
+    0xFF6C5CE7L, // Shy Moment
+    0xFFB83227L, // Red
+    0xFF006266L, // Turkish Aqua
+    0xFF1B1464L, // 27 Club
+    0xFF5758BBL, // Circumorbital Ring
+    0xFF6F1E51L, // Magenta Purple
+    0xFF2F3640L, // Electromagnetic
+)
 
 class MainActivity : ComponentActivity() {
 
@@ -152,11 +168,9 @@ class MainActivity : ComponentActivity() {
                 } ?: return@launch
 
                 val cards = if (content.trim().startsWith("[")) {
-                    // JSON
                     val type = object : TypeToken<List<CardEntity>>() {}.type
                     Gson().fromJson<List<CardEntity>>(content, type)
                 } else {
-                    // CSV
                     val lines = content.lines()
                     if (lines.size > 1) {
                         lines.drop(1).filter { it.isNotBlank() }.map { line ->
@@ -194,25 +208,27 @@ fun CardManagerTheme(themeMode: ThemeMode, content: @Composable () -> Unit) {
 
     val colorScheme = if (darkTheme) {
         darkColorScheme(
-            background = Color(0xFF080808),
-            surface = Color(0xFF121212),
-            primary = Color(0xFF00F2FF),
+            background = Color(0xFF0A0A0CL),
+            surface = Color(0xFF16161AL),
+            primary = Color(0xFF00E5FFL),
+            secondary = Color(0xFF7000FFL),
             onPrimary = Color.Black,
-            onSurface = Color.White,
+            onSurface = Color(0xFFE1E1E6L),
             onBackground = Color.White,
-            surfaceVariant = Color(0xFF1A1A1A),
-            onSurfaceVariant = Color(0xFFB0B0B0)
+            surfaceVariant = Color(0xFF202024L),
+            onSurfaceVariant = Color(0xFFA8A8B3L)
         )
     } else {
         lightColorScheme(
-            background = Color.White,
-            surface = Color(0xFFF2F2F7),
-            primary = Color(0xFF007AFF),
+            background = Color(0xFFF0F2F5L),
+            surface = Color.White,
+            primary = Color(0xFF0066FFL),
+            secondary = Color(0xFF6200EEL),
             onPrimary = Color.White,
-            onSurface = Color(0xFF1C1C1E),
-            onBackground = Color(0xFF1C1C1E),
-            surfaceVariant = Color(0xFFE5E5EA),
-            onSurfaceVariant = Color(0xFF8E8E93)
+            onSurface = Color(0xFF1C1C1EL),
+            onBackground = Color(0xFF1C1C1EL),
+            surfaceVariant = Color(0xFFE5E5EAL),
+            onSurfaceVariant = Color(0xFF8E8E93L)
         )
     }
 
@@ -259,7 +275,14 @@ fun CardListScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(stringResource(R.string.my_vault), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, letterSpacing = 4.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.my_vault).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            letterSpacing = 6.sp,
+                            fontWeight = FontWeight.Black
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 },
                 navigationIcon = {
                     Box {
@@ -275,7 +298,6 @@ fun CardListScreen(
                                 .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            // Import Section
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.import_data), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                 onClick = { 
@@ -284,8 +306,6 @@ fun CardListScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.Upload, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) }
                             )
-                            
-                            // Export Section
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.export), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                 onClick = { 
@@ -295,10 +315,7 @@ fun CardListScreen(
                                 leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) },
                                 trailingIcon = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp)) }
                             )
-                            
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-
-                            // Theme Section
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.theme), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                 onClick = { showMenu = false; showThemeMenu = true },
@@ -312,8 +329,6 @@ fun CardListScreen(
                                 },
                                 trailingIcon = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp)) }
                             )
-                            
-                            // Language Section
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.language), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                 onClick = { showMenu = false; showLanguageMenu = true },
@@ -321,8 +336,6 @@ fun CardListScreen(
                                 trailingIcon = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp)) }
                             )
                         }
-
-                        // Export Options Menu
                         DropdownMenu(
                             expanded = showExportOptions,
                             onDismissRequest = { showExportOptions = false },
@@ -343,8 +356,6 @@ fun CardListScreen(
                                 leadingIcon = { Icon(Icons.Default.TableChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), modifier = Modifier.size(18.dp)) }
                             )
                         }
-
-                        // Theme Selection Menu
                         DropdownMenu(
                             expanded = showThemeMenu,
                             onDismissRequest = { showThemeMenu = false },
@@ -382,8 +393,6 @@ fun CardListScreen(
                                 trailingIcon = { if (currentThemeMode == ThemeMode.LIGHT) Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             )
                         }
-                        
-                        // Language Selection Menu
                         DropdownMenu(
                             expanded = showLanguageMenu,
                             onDismissRequest = { showLanguageMenu = false },
@@ -413,15 +422,33 @@ fun CardListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { isEditMode = !isEditMode }) {
+                    val isCurrentlyDark = when (currentThemeMode) {
+                        ThemeMode.LIGHT -> false
+                        ThemeMode.DARK -> true
+                        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                    }
+                    IconButton(
+                        onClick = { isEditMode = !isEditMode },
+                        modifier = if (isEditMode) {
+                            Modifier.background(
+                                color = if (isCurrentlyDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) 
+                                        else Color(0xFF1B5E20L).copy(alpha = 0.1f),
+                                shape = CircleShape
+                            )
+                        } else Modifier
+                    ) {
                         Icon(
-                            imageVector = if (isEditMode) Icons.Default.Close else Icons.Default.Edit,
+                            imageVector = if (isEditMode) Icons.Default.Check else Icons.Default.Edit,
                             contentDescription = stringResource(R.string.edit_mode_toggle),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (isEditMode) {
+                                if (isCurrentlyDark) MaterialTheme.colorScheme.primary else Color(0xFF1B5E20L)
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.95f))
             )
         },
         floatingActionButton = {
@@ -430,93 +457,98 @@ fun CardListScreen(
                     onClick = { navController.navigate("card_input") },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(16.dp)
-                ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_card)) }
+                    shape = RoundedCornerShape(20.dp)
+                ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_card), modifier = Modifier.size(32.dp)) }
             }
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { padding ->
-        LazyColumn(
-            state = lazyListState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .pointerInput(isEditMode) {
-                    if (isEditMode) return@pointerInput
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = { offset ->
-                            lazyListState.layoutInfo.visibleItemsInfo
-                                .firstOrNull { item -> offset.y.toInt() in item.offset..(item.offset + item.size) }
-                                ?.let { draggingItemIndex = it.index }
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            dragOffset += dragAmount.y
-                            
-                            val currentIndex = draggingItemIndex ?: return@detectDragGesturesAfterLongPress
-                            val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
-                            val draggingItem = visibleItems.firstOrNull { it.index == currentIndex } ?: return@detectDragGesturesAfterLongPress
-                            
-                            // ドラッグ中のアイテムの中心物理座標
-                            val draggingItemCenter = draggingItem.offset + (draggingItem.size / 2) + dragOffset
-                            
-                            // 入れ替わり対象のアイテムを判定
-                            val targetItem = visibleItems.firstOrNull { item ->
-                                item.index != currentIndex && 
-                                draggingItemCenter.toInt() in item.offset..(item.offset + item.size)
-                            }
-
-                            if (targetItem != null) {
-                                // 重要：入れ替わりによって発生するベース位置のズレを補正し、指の位置をキープする
-                                val scrollAdjustment = draggingItem.offset - targetItem.offset
-                                
-                                val newList = listForDisplay.toMutableList()
-                                Collections.swap(newList, currentIndex, targetItem.index)
-                                
-                                listForDisplay = newList
-                                draggingItemIndex = targetItem.index
-                                dragOffset += scrollAdjustment
-                            }
-                        },
-                        onDragEnd = {
-                            viewModel.updateCardOrder(listForDisplay)
-                            draggingItemIndex = null
-                            dragOffset = 0f
-                        },
-                        onDragCancel = {
-                            draggingItemIndex = null
-                            dragOffset = 0f
-                        }
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (listForDisplay.isEmpty()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Default.CreditCardOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
                     )
-                },
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            itemsIndexed(listForDisplay, key = { _, card -> card.id }) { index, card ->
-                val isDragging = draggingItemIndex == index
-                val elevation by animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "elevation")
-                
-                CardItem(
-                    card = card,
-                    isEditMode = isEditMode,
-                    onDelete = { viewModel.deleteCard(card) },
-                    onClick = { if (draggingItemIndex == null && !isEditMode) selectedCard = card },
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        stringResource(R.string.vault_empty).uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        letterSpacing = 2.sp
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier
-                        .animateItem(
-                            fadeInSpec = null,
-                            fadeOutSpec = null,
-                            placementSpec = if (isDragging) null else spring<IntOffset>()
+                        .fillMaxSize()
+                        .pointerInput(isEditMode) {
+                            if (isEditMode) return@pointerInput
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset ->
+                                    lazyListState.layoutInfo.visibleItemsInfo
+                                        .firstOrNull { item -> offset.y.toInt() in item.offset..(item.offset + item.size) }
+                                        ?.let { draggingItemIndex = it.index }
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    dragOffset += dragAmount.y
+                                    val currentIndex = draggingItemIndex ?: return@detectDragGesturesAfterLongPress
+                                    val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
+                                    val draggingItem = visibleItems.firstOrNull { it.index == currentIndex } ?: return@detectDragGesturesAfterLongPress
+                                    val draggingItemCenter = draggingItem.offset + (draggingItem.size / 2) + dragOffset
+                                    val targetItem = visibleItems.firstOrNull { item ->
+                                        item.index != currentIndex && 
+                                        draggingItemCenter.toInt() in item.offset..(item.offset + item.size)
+                                    }
+                                    if (targetItem != null) {
+                                        val scrollAdjustment = draggingItem.offset - targetItem.offset
+                                        val newList = listForDisplay.toMutableList()
+                                        Collections.swap(newList, currentIndex, targetItem.index)
+                                        listForDisplay = newList
+                                        draggingItemIndex = targetItem.index
+                                        dragOffset += scrollAdjustment
+                                    }
+                                },
+                                onDragEnd = {
+                                    viewModel.updateCardOrder(listForDisplay)
+                                    draggingItemIndex = null
+                                    dragOffset = 0f
+                                },
+                                onDragCancel = {
+                                    draggingItemIndex = null
+                                    dragOffset = 0f
+                                }
+                            )
+                        },
+                    contentPadding = PaddingValues(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    itemsIndexed(listForDisplay, key = { _, card -> card.id }) { index, card ->
+                        val isDragging = draggingItemIndex == index
+                        val elevation by animateDpAsState(if (isDragging) 24.dp else 0.dp)
+                        
+                        CardItem(
+                            card = card,
+                            isEditMode = isEditMode,
+                            onDelete = { viewModel.deleteCard(card) },
+                            onClick = { if (draggingItemIndex == null && !isEditMode) selectedCard = card },
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    translationY = if (isDragging) dragOffset else 0f
+                                    scaleX = if (isDragging) 1.02f else 1f
+                                    scaleY = if (isDragging) 1.02f else 1f
+                                    alpha = if (isDragging) 0.8f else 1f
+                                }
+                                .zIndex(if (isDragging) 1f else 0f)
                         )
-                        .zIndex(if (isDragging) 100f else 1f)
-                        .graphicsLayer {
-                            translationY = if (isDragging) dragOffset else 0f
-                            shadowElevation = elevation.toPx()
-                            scaleX = if (isDragging) 1.02f else 1f
-                            scaleY = if (isDragging) 1.02f else 1f
-                            alpha = if (isDragging) 0.95f else 1f
-                        }
-                        .shadow(elevation, RoundedCornerShape(16.dp))
-                )
+                    }
+                }
             }
         }
 
@@ -550,32 +582,66 @@ fun CardItem(
     modifier: Modifier = Modifier
 ) {
     val last4 = if (card.cardNumber.length >= 4) card.cardNumber.takeLast(4) else card.cardNumber
-    
+    val baseColor = Color(card.color)
+    val isDark = isSystemInDarkTheme()
+    val cardGradient = listOf(baseColor, baseColor.copy(alpha = 0.8f))
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .height(130.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Brush.linearGradient(cardGradient))
             .clickable { onClick() }
-            .padding(20.dp)
+            .then(
+                if (isDark) Modifier.border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+                else Modifier
+            )
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            modifier = Modifier
+                .padding(20.dp)
+                .size(35.dp, 25.dp)
+                .align(Alignment.TopEnd)
+                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+        )
+
+        Text(
+            card.brand.uppercase(),
+            modifier = Modifier.padding(20.dp).align(Alignment.TopStart),
+            color = Color.White.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        )
+
+        Column(
+            modifier = Modifier.padding(20.dp).align(Alignment.BottomStart)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(card.cardName.ifEmpty { stringResource(R.string.unknown) }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Default)
-                Text("**** **** **** $last4", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
-            }
-            
-            if (isEditMode) {
-                IconButton(onClick = onDelete) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.delete_card), tint = Color.Red)
+            Text(
+                card.cardName.ifEmpty { "UNKNOWN" }.uppercase(),
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                letterSpacing = 1.sp,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                "•••• •••• •••• $last4",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = FontFamily.Monospace, 
+                    fontSize = 20.sp,
+                    letterSpacing = 1.sp
+                ),
+                maxLines = 1
+            )
+        }
+
+        if (isEditMode) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f))) {
+                IconButton(onClick = onDelete, modifier = Modifier.align(Alignment.Center)) {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
                 }
-            } else {
-                Text(card.brand.uppercase(), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -587,11 +653,7 @@ fun CardDetailDialog(card: CardEntity, onDismiss: () -> Unit, onEdit: () -> Unit
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.encrypted_details), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium, letterSpacing = 2.sp)
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_card), tint = MaterialTheme.colorScheme.primary)
@@ -621,17 +683,12 @@ fun CardDetailDialog(card: CardEntity, onDismiss: () -> Unit, onEdit: () -> Unit
 fun DetailItem(label: String, value: String, modifier: Modifier = Modifier, copyValue: String? = null) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = copyValue != null) {
-                copyValue?.let {
-                    clipboardManager.setText(AnnotatedString(it))
-                    Toast.makeText(context, context.getString(R.string.copied_toast, label), Toast.LENGTH_SHORT).show()
-                }
-            }
-    ) {
+    Column(modifier = modifier.fillMaxWidth().clickable(enabled = copyValue != null) {
+        copyValue?.let {
+            clipboardManager.setText(AnnotatedString(it))
+            Toast.makeText(context, context.getString(R.string.copied_toast, label), Toast.LENGTH_SHORT).show()
+        }
+    }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
             if (copyValue != null) {
@@ -652,10 +709,9 @@ fun CardInputScreen(navController: NavController, viewModel: CardViewModel, card
     var cvv by remember { mutableStateOf("") }
     var detectedBrand by remember { mutableStateOf("") }
     var expiryValue by remember { mutableStateOf(TextFieldValue("")) }
-    
+    var selectedCardColor by remember { mutableLongStateOf(CardColors[0]) }
     val isEditMode = cardId != -1
     var existingCard by remember { mutableStateOf<CardEntity?>(null) }
-    
     val identifyingText = stringResource(R.string.identifying)
     val coreCardText = stringResource(R.string.core_card)
 
@@ -670,6 +726,7 @@ fun CardInputScreen(navController: NavController, viewModel: CardViewModel, card
                 cvv = card.cvv
                 detectedBrand = card.brand
                 expiryValue = TextFieldValue(card.expiryDate, TextRange(card.expiryDate.length))
+                selectedCardColor = card.color
             }
         }
     }
@@ -688,69 +745,50 @@ fun CardInputScreen(navController: NavController, viewModel: CardViewModel, card
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                (if (isEditMode) stringResource(R.string.update_encryption) else stringResource(R.string.new_encryption)).uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                letterSpacing = 4.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(210.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.background)))
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-                    .padding(28.dp)
-            ) {
+            Text((if (isEditMode) stringResource(R.string.update_encryption) else stringResource(R.string.new_encryption)).uppercase(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, letterSpacing = 4.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(24.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(24.dp)).background(Brush.linearGradient(listOf(Color(selectedCardColor), Color(selectedCardColor).copy(alpha = 0.8f)))).border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp)).padding(20.dp)) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(
-                            (if (detectedBrand.isEmpty()) coreCardText else detectedBrand).uppercase(),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontFamily = FontFamily.Monospace
-                        )
-                        Box(modifier = Modifier.size(45.dp, 35.dp).clip(RoundedCornerShape(8.dp)).background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)))))
+                        Text((if (detectedBrand.isEmpty()) coreCardText else detectedBrand).uppercase(), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace, maxLines = 1)
+                        Box(modifier = Modifier.size(40.dp, 30.dp).clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.1f)).border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(6.dp)))
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = if (cardNumber.isEmpty()) "" else cardNumber.chunked(4).joinToString(" "),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
-                        fontFamily = FontFamily.Monospace,
-                        letterSpacing = 1.5.sp,
-                        maxLines = 1,
+                        text = if (cardNumber.isEmpty()) "" else cardNumber.chunked(4).joinToString(" "), 
+                        color = Color.White, 
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontSize = 22.sp,
+                            letterSpacing = 1.sp
+                        ), 
+                        fontFamily = FontFamily.Monospace, 
+                        maxLines = 1, 
                         softWrap = false
                     )
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.identifier).uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                            Text(cardName.ifEmpty { "---" }, color = MaterialTheme.colorScheme.onSurface, fontFamily = FontFamily.Default, maxLines = 1)
+                            Text(stringResource(R.string.identifier).uppercase(), color = Color.White.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                            Text(cardName.ifEmpty { "---" }.uppercase(), color = Color.White, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), maxLines = 1)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(stringResource(R.string.exp_date).uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                            Text(formatExpiry(expiryDate).ifEmpty { "--/--" }, color = MaterialTheme.colorScheme.onSurface, fontFamily = FontFamily.Monospace)
+                            Text(stringResource(R.string.exp_date).uppercase(), color = Color.White.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                            Text(formatExpiry(expiryDate).ifEmpty { "--/--" }, color = Color.White, fontFamily = FontFamily.Monospace)
                         }
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(40.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(stringResource(R.string.card_color).uppercase(), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold), modifier = Modifier.align(Alignment.Start).padding(start = 4.dp, bottom = 12.dp) )
+            LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(horizontal = 4.dp)) {
+                items(CardColors) { color ->
+                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(Color(color)).border(width = if (selectedCardColor == color) 3.dp else 0.dp, color = if (selectedCardColor == color) MaterialTheme.colorScheme.primary else Color.Transparent, shape = CircleShape).clickable { selectedCardColor = color })
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 CyberInputField(value = cardName, onValueChange = { cardName = it }, label = stringResource(R.string.identifier))
                 CyberInputField(value = cardNumber, onValueChange = { input ->
                     val digits = input.filter { it.isDigit() }
@@ -768,37 +806,18 @@ fun CardInputScreen(navController: NavController, viewModel: CardViewModel, card
                     CyberInputField(value = cvv, onValueChange = { if (it.length <= 4) cvv = it.filter { it.isDigit() } }, label = stringResource(R.string.cvv), modifier = Modifier.weight(0.8f), keyboardType = KeyboardType.Number)
                 }
             }
-            Spacer(modifier = Modifier.height(48.dp))
-            Button(
-                onClick = {
-                    if (cardNumber.isNotEmpty()) {
-                        if (isEditMode && existingCard != null) {
-                            viewModel.updateCard(
-                                existingCard!!.copy(
-                                    cardName = cardName,
-                                    cardNumber = cardNumber,
-                                    expiryDate = expiryDate,
-                                    cvv = cvv,
-                                    brand = if (detectedBrand.isEmpty() || detectedBrand == identifyingText) coreCardText else detectedBrand
-                                )
-                            )
-                        } else {
-                            viewModel.insertCard(
-                                cardName = cardName,
-                                cardNumber = cardNumber,
-                                expiryDate = expiryDate,
-                                cvv = cvv,
-                                brand = if (detectedBrand.isEmpty() || detectedBrand == identifyingText) coreCardText else detectedBrand
-                            )
-                        }
-                        navController.popBackStack()
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(onClick = {
+                if (cardNumber.isNotEmpty()) {
+                    if (isEditMode && existingCard != null) {
+                        viewModel.updateCard(existingCard!!.copy(cardName = cardName, cardNumber = cardNumber, expiryDate = expiryDate, cvv = cvv, brand = if (detectedBrand.isEmpty() || detectedBrand == identifyingText) coreCardText else detectedBrand, color = selectedCardColor))
+                    } else {
+                        viewModel.insertCard(cardName = cardName, cardNumber = cardNumber, expiryDate = expiryDate, cvv = cvv, brand = if (detectedBrand.isEmpty() || detectedBrand == identifyingText) coreCardText else detectedBrand, color = selectedCardColor)
                     }
-                },
-                modifier = Modifier.fillMaxWidth().height(64.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
-            ) { Text((if (isEditMode) stringResource(R.string.update) else stringResource(R.string.save)).uppercase(), fontWeight = FontWeight.Black, letterSpacing = 2.sp) }
-            Spacer(modifier = Modifier.height(40.dp))
+                    navController.popBackStack()
+                }
+            }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)) { Text((if (isEditMode) stringResource(R.string.update) else stringResource(R.string.save)).uppercase(), fontWeight = FontWeight.Black, letterSpacing = 2.sp) }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -806,47 +825,16 @@ fun CardInputScreen(navController: NavController, viewModel: CardViewModel, card
 @Composable
 fun CyberInputField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier, keyboardType: KeyboardType = KeyboardType.Text) {
     Column(modifier = modifier) {
-        Text(label.uppercase(), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
-        TextField(
-            value = value, 
-            onValueChange = onValueChange, 
-            modifier = Modifier.fillMaxWidth(), 
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, 
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface, 
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary, 
-                unfocusedIndicatorColor = Color.Transparent, 
-                focusedTextColor = MaterialTheme.colorScheme.onSurface, 
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-            ), 
-            shape = RoundedCornerShape(8.dp), 
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType), 
-            singleLine = true
-        )
+        Text(label.uppercase(), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+        OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), unfocusedContainerColor = MaterialTheme.colorScheme.surface, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), shape = RoundedCornerShape(12.dp), keyboardOptions = KeyboardOptions(keyboardType = keyboardType), singleLine = true, textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace))
     }
 }
 
 @Composable
 fun CyberInputField(value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit, label: String, modifier: Modifier = Modifier, keyboardType: KeyboardType = KeyboardType.Text, visualTransformation: VisualTransformation = VisualTransformation.None) {
     Column(modifier = modifier) {
-        Text(label.uppercase(), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
-        TextField(
-            value = value, 
-            onValueChange = onValueChange, 
-            modifier = Modifier.fillMaxWidth(), 
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, 
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface, 
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary, 
-                unfocusedIndicatorColor = Color.Transparent, 
-                focusedTextColor = MaterialTheme.colorScheme.onSurface, 
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-            ), 
-            shape = RoundedCornerShape(8.dp), 
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = visualTransformation, 
-            singleLine = true
-        )
+        Text(label.uppercase(), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+        OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), unfocusedContainerColor = MaterialTheme.colorScheme.surface, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface), shape = RoundedCornerShape(12.dp), keyboardOptions = KeyboardOptions(keyboardType = keyboardType), visualTransformation = visualTransformation, singleLine = true, textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace))
     }
 }
 

@@ -45,4 +45,6 @@
     <string name="back">Back</string>
     <string name="edit_card">Edit Card</string>
     <string name="menu_desc">Menu</string>
+    <string name="vault_empty">Vault is Empty</string>
+    <string name="card_color">CARD COLOR</string>
 </resources>

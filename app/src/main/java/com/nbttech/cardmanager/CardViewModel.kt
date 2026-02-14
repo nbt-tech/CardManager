@@ -16,12 +16,11 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         cardNumber: String,
         expiryDate: String,
         cvv: String,
-        brand: String
+        brand: String,
+        color: Long = 0xFF1A1A1AL
     ) {
         viewModelScope.launch {
-            // 保存前にイシュアを取得
             val issuer = BinLookup.getIssuer(cardNumber)
-            
             val count = cardDao.getCardCount()
             val newCard = CardEntity(
                 cardName = cardName,
@@ -29,8 +28,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                 expiryDate = expiryDate,
                 cvv = cvv,
                 brand = brand,
-                issuer = issuer, // 取得した値をセット
-                displayOrder = count
+                issuer = issuer,
+                displayOrder = count,
+                color = color
             )
             cardDao.insertCard(newCard)
         }
@@ -38,10 +38,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateCard(card: CardEntity) {
         viewModelScope.launch {
-            // カード番号が変わっている可能性があるのでイシュアを再取得
             val issuer = BinLookup.getIssuer(card.cardNumber)
             val updatedCard = card.copy(issuer = issuer)
-            cardDao.insertCard(updatedCard) // OnConflictStrategy.REPLACE is used in Dao
+            cardDao.insertCard(updatedCard)
         }
     }
 

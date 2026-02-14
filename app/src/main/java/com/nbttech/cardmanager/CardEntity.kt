@@ -12,5 +12,6 @@ data class CardEntity(
     val cvv: String,
     val brand: String,
     val issuer: String,
-    val displayOrder: Int = 0 // 並び順保存用
+    val displayOrder: Int = 0,
+    val color: Long = 0xFF1A1A1AL
 )
