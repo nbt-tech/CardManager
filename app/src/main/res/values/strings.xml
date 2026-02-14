@@ -1,3 +1,48 @@
 <resources>
     <string name="app_name">CardManager</string>
+    <string name="my_vault">CARDS</string>
+    <string name="export">Export</string>
+    <string name="import_data">Import</string>
+    <string name="export_json">Export JSON</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="import_file">Import File</string>
+    <string name="language">Language</string>
+    <string name="japanese">Japanese</string>
+    <string name="english">English</string>
+    <string name="theme">Theme</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="light_mode">Light Mode</string>
+    <string name="system_mode">System Default</string>
+
+    <string name="new_encryption">NEW ENCRYPTION</string>
+    <string name="update_encryption">UPDATE ENCRYPTION</string>
+    <string name="encrypted_details">ENCRYPTED DETAILS</string>
+
+    <string name="identifier">CARD NAME</string>
+    <string name="core_number">CORE NUMBER</string>
+    <string name="exp_date">EXP DATE</string>
+    <string name="cvv">CVV</string>
+    <string name="brand">BRAND</string>
+    <string name="issuer">ISSUER</string>
+
+    <string name="save">SAVE</string>
+    <string name="update">UPDATE</string>
+    <string name="close">CLOSE</string>
+
+    <string name="identifying">IDENTIFYING...</string>
+    <string name="core_card">CORE CARD</string>
+    <string name="unknown">UNKNOWN</string>
+
+    <string name="exported_json">Exported as JSON</string>
+    <string name="exported_csv">Exported as CSV</string>
+    <string name="imported_cards">Imported %1$d cards</string>
+    <string name="import_failed">Import failed</string>
+    <string name="copied_toast">%1$s copied</string>
+
+    <string name="delete_card">Delete Card</string>
+    <string name="edit_mode_toggle">Toggle Edit Mode</string>
+    <string name="add_card">Add Card</string>
+    <string name="back">Back</string>
+    <string name="edit_card">Edit Card</string>
+    <string name="menu_desc">Menu</string>
 </resources>

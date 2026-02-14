@@ -36,6 +36,15 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateCard(card: CardEntity) {
+        viewModelScope.launch {
+            // カード番号が変わっている可能性があるのでイシュアを再取得
+            val issuer = BinLookup.getIssuer(card.cardNumber)
+            val updatedCard = card.copy(issuer = issuer)
+            cardDao.insertCard(updatedCard) // OnConflictStrategy.REPLACE is used in Dao
+        }
+    }
+
     fun deleteCard(card: CardEntity) {
         viewModelScope.launch {
             cardDao.deleteCard(card)
@@ -60,5 +69,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             val cardsToInsert = cards.map { it.copy(id = 0) }
             cardDao.insertCards(cardsToInsert)
         }
+    }
+
+    suspend fun getCardById(id: Int): CardEntity? {
+        return allCards.first().find { it.id == id }
     }
 }
